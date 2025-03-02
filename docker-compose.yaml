@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16.1
+    container_name: subtrack-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: subtrack-db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -q -d $POSTGRES_DB -U $POSTGRES_USER" ]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+  sub-track:
+    image: sub-track
+    build: .
+    container_name: sub-track
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/subtrack-db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
